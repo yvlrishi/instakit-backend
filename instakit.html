@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>instakit — your ig glow up starts here</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #ff6eb4;
+    --lilac: #c084fc;
+    --soft: #fdf4ff;
+    --dark: #1a0a2e;
+    --card: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.12);
+    --text: #f0e6ff;
+    --muted: rgba(240,230,255,0.5);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d0118;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+  canvas#bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  .wrap { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 0 20px 80px; }
+
+  header {
+    text-align: center;
+    padding: 80px 0 60px;
+  }
+  header .eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 16px;
+    opacity: 0.8;
+  }
+  header h1 {
+    font-size: clamp(48px, 8vw, 80px);
+    font-weight: 700;
+    line-height: 1;
+    background: linear-gradient(135deg, #ff6eb4, #c084fc, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+  header p {
+    font-size: 16px;
+    color: var(--muted);
+    font-weight: 300;
+  }
+  .floating-symbols {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .floating-symbols span {
+    font-size: 20px;
+    animation: floaty 3s ease-in-out infinite;
+    display: inline-block;
+  }
+  .floating-symbols span:nth-child(2) { animation-delay: 0.4s; }
+  .floating-symbols span:nth-child(3) { animation-delay: 0.8s; }
+  .floating-symbols span:nth-child(4) { animation-delay: 1.2s; }
+  .floating-symbols span:nth-child(5) { animation-delay: 1.6s; }
+  @keyframes floaty {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  nav {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+  nav button {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.2s;
+    backdrop-filter: blur(10px);
+  }
+  nav button:hover, nav button.active {
+    background: rgba(192,132,252,0.15);
+    border-color: var(--lilac);
+    color: var(--lilac);
+  }
+
+  .tool { display: none; }
+  .tool.active { display: block; }
+
+  .card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    backdrop-filter: blur(20px);
+    margin-bottom: 16px;
+  }
+  .card h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .card .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+  textarea, input[type="text"] {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea:focus, input[type="text"]:focus {
+    border-color: var(--lilac);
+  }
+  textarea::placeholder, input::placeholder { color: var(--muted); }
+  .btn {
+    background: linear-gradient(135deg, #ff6eb4, #c084fc);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 13px 28px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    margin-top: 14px;
+  }
+  .btn:hover { opacity: 0.9; transform: scale(1.02); }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .result-box {
+    margin-top: 20px;
+    display: none;
+  }
+  .result-box.show { display: block; }
+  .result-item {
+    background: rgba(192,132,252,0.08);
+    border: 0.5px solid rgba(192,132,252,0.2);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .result-item:hover { border-color: var(--lilac); }
+  .copy-tag {
+    position: absolute;
+    top: 10px; right: 12px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+  .copied { color: var(--pink) !important; }
+
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 24px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .loading.show { display: block; }
+  .dot-pulse { display: inline-flex; gap: 4px; margin-left: 8px; }
+  .dot-pulse span {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--lilac);
+    animation: pulse 1.2s ease-in-out infinite;
+    display: inline-block;
+  }
+  .dot-pulse span:nth-child(2) { animation-delay: 0.2s; }
+  .dot-pulse span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+
+  .symbol-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .sym-btn {
+    background: rgba(255,255,255,0.05);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.15s;
+    color: var(--text);
+  }
+  .sym-btn:hover {
+    background: rgba(192,132,252,0.15);
+    border-color: var(--lilac);
+    transform: scale(1.1);
+  }
+  .sym-category {
+    margin-bottom: 20px;
+  }
+  .sym-category h3 {
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .font-row {
+    background: rgba(255,255,255,0.04);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .font-row:hover { border-color: var(--lilac); }
+  .font-row span { font-size: 15px; color: var(--text); }
+  .font-row .copy-tag { position: static; }
+
+  .roast-level {
+    display: flex; gap: 8px; margin: 12px 0;
+  }
+  .roast-level button {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .roast-level button.active {
+    background: rgba(255,110,180,0.15);
+    border-color: var(--pink);
+    color: var(--pink);
+  }
+  .upload-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 16px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    margin-bottom: 14px;
+  }
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--lilac);
+    background: rgba(192,132,252,0.05);
+  }
+  .upload-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .upload-zone .upload-icon { font-size: 28px; margin-bottom: 8px; }
+  .upload-zone p { font-size: 13px; color: var(--muted); }
+  .upload-zone p span { color: var(--lilac); }
+  .preview-wrap {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 14px;
+  }
+  .preview-wrap img {
+    max-width: 100%;
+    max-height: 280px;
+    border-radius: 14px;
+    border: 0.5px solid var(--border);
+    display: block;
+  }
+  .preview-wrap .remove-img {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: rgba(0,0,0,0.6);
+    border: none;
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .mode-toggle {
+    display: flex; gap: 8px; margin-bottom: 14px;
+  }
+  .mode-toggle button {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    padding: 9px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mode-toggle button.active {
+    background: rgba(192,132,252,0.15);
+    border-color: var(--lilac);
+    color: var(--lilac);
+  }
+
+  .username-result {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(192,132,252,0.08);
+    border: 0.5px solid rgba(192,132,252,0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .username-result a {
+    font-size: 12px;
+    color: var(--lilac);
+    text-decoration: none;
+    font-family: 'Space Mono', monospace;
+  }
+  .username-result a:hover { text-decoration: underline; }
+
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: rgba(192,132,252,0.9);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease;
+    z-index: 999;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .error-msg {
+    background: rgba(255,100,100,0.1);
+    border: 0.5px solid rgba(255,100,100,0.3);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #ff9999;
+    margin-top: 14px;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  .api-banner {
+    background: rgba(255,200,0,0.07);
+    border: 0.5px solid rgba(255,200,0,0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: rgba(255,220,100,0.8);
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .api-banner a { color: #ffd700; }
+
+  footer {
+    text-align: center;
+    padding: 40px 0 20px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">✦ your ig toolkit</div>
+    <h1>instakit</h1>
+    <p>bio · username · symbols · fonts · niche · roast · captions</p>
+    <div class="floating-symbols">
+      <span>♡</span><span>˚✧</span><span>₊⊹</span><span>𓆩✦𓆪</span><span>ꕥ</span>
+    </div>
+  </header>
+
+  <div class="api-banner">
+    ⚡ connect your grok api — add your key in <code>script</code> below or deploy the backend proxy &nbsp;·&nbsp; <a href="#setup">setup guide</a>
+  </div>
+
+  <nav>
+    <button class="active" onclick="switchTool('bio')">✦ bio gen</button>
+    <button onclick="switchTool('username')">@ username</button>
+    <button onclick="switchTool('symbols')">❋ symbols</button>
+    <button onclick="switchTool('fonts')">𝓯𝓸𝓷𝓽𝓼</button>
+    <button onclick="switchTool('niche')">◈ niche finder</button>
+    <button onclick="switchTool('roast')">🔥 outfit roast</button>
+    <button onclick="switchTool('captions')">✎ captions</button>
+  </nav>
+
+  <!-- BIO GEN -->
+  <div class="tool active" id="tool-bio">
+    <div class="card">
+      <h2>✦ bio generator</h2>
+      <div class="subtitle">describe your vibe and get 5 bios ready to copy</div>
+      <textarea id="bio-input" rows="3" placeholder="e.g. soft girl, loves matcha and thrifting, pisces, based in delhi"></textarea>
+      <button class="btn" onclick="generateBio()">generate bios</button>
+      <div class="loading" id="bio-loading">generating your bios <div class="dot-pulse"><span></span><span></span><span></span></div></div>
+      <div class="error-msg" id="bio-error"></div>
+      <div class="result-box" id="bio-results"></div>
+    </div>
+  </div>
+
+  <!-- USERNAME -->
+  <div class="tool" id="tool-username">
+    <div class="card">
+      <h2>@ username suggester</h2>
+      <div class="subtitle">get 15 unique username ideas — click to check on instagram</div>
+      <input type="text" id="username-input" placeholder="e.g. luna, aesthetic girl, dark academia, fairy">
+      <button class="btn" onclick="generateUsernames()">suggest usernames</button>
+      <div class="loading" id="username-loading">cooking up usernames <div class="dot-pulse"><span></span><span></span><span></span></div></div>
+      <div class="error-msg" id="username-error"></div>
+      <div class="result-box" id="username-results"></div>
+    </div>
+  </div>
+
+  <!-- SYMBOLS -->
+  <div class="tool" id="tool-symbols">
+    <div class="card">
+      <h2>❋ aesthetic symbols</h2>
+      <div class="subtitle">tap to copy — use in bios, highlights, stories</div>
+
+      <div class="sym-category">
+        <h3>hearts & love</h3>
+        <div class="symbol-grid" id="hearts"></div>
+      </div>
+      <div class="sym-category">
+        <h3>stars & sparkles</h3>
+        <div class="symbol-grid" id="stars"></div>
+      </div>
+      <div class="sym-category">
+        <h3>soft & cute</h3>
+        <div class="symbol-grid" id="cute"></div>
+      </div>
+      <div class="sym-category">
+        <h3>dark & edgy</h3>
+        <div class="symbol-grid" id="dark"></div>
+      </div>
+      <div class="sym-category">
+        <h3>separators & dividers</h3>
+        <div class="symbol-grid" id="dividers"></div>
+      </div>
+      <div class="sym-category">
+        <h3>nature & aesthetic</h3>
+        <div class="symbol-grid" id="nature"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FONTS -->
+  <div class="tool" id="tool-fonts">
+    <div class="card">
+      <h2>𝓯𝓸𝓷𝓽 generator</h2>
+      <div class="subtitle">type anything — tap a font to copy</div>
+      <input type="text" id="font-input" placeholder="type your name or bio here..." oninput="generateFonts()">
+      <div id="font-results" style="margin-top: 16px;"></div>
+    </div>
+  </div>
+
+  <!-- NICHE -->
+  <div class="tool" id="tool-niche">
+    <div class="card">
+      <h2>◈ niche finder</h2>
+      <div class="subtitle">describe yourself — ai tells you your perfect ig niche + strategy</div>
+      <textarea id="niche-input" rows="4" placeholder="e.g. i love vintage fashion, reading, making coffee art, my aesthetic is dark academia and im a college student in delhi"></textarea>
+      <button class="btn" onclick="findNiche()">find my niche</button>
+      <div class="loading" id="niche-loading">analysing your vibe <div class="dot-pulse"><span></span><span></span><span></span></div></div>
+      <div class="error-msg" id="niche-error"></div>
+      <div class="result-box" id="niche-results"></div>
+    </div>
+  </div>
+
+  <!-- ROAST -->
+  <div class="tool" id="tool-roast">
+    <div class="card">
+      <h2>🔥 outfit roaster</h2>
+      <div class="subtitle">upload a photo — ai analyses your fit and gives real feedback</div>
+      <div class="mode-toggle">
+        <button class="active" onclick="setRoastMode(this,'roast')">roast my fit 🔥</button>
+        <button onclick="setRoastMode(this,'feedback')">style feedback ✦</button>
+      </div>
+      <div id="upload-zone" class="upload-zone">
+        <input type="file" id="outfit-upload" accept="image/*" onchange="handleImageUpload(this)">
+        <div class="upload-icon">📸</div>
+        <p>drop your photo here or <span>click to upload</span></p>
+        <p style="font-size:11px;margin-top:6px;opacity:0.5">jpg, png, webp · max 10mb</p>
+      </div>
+      <div id="preview-container" style="display:none">
+        <div class="preview-wrap">
+          <img id="outfit-preview" src="" alt="your outfit">
+          <button class="remove-img" onclick="clearImage()">✕</button>
+        </div>
+      </div>
+      <div class="roast-level">
+        <button class="active" onclick="setRoastLevel(this,'medium')">medium heat</button>
+        <button onclick="setRoastLevel(this,'spicy')">spicy</button>
+        <button onclick="setRoastLevel(this,'nuclear')">nuclear ☢️</button>
+      </div>
+      <button class="btn" onclick="roastOutfit()" id="roast-btn" disabled>upload a photo first</button>
+      <div class="loading" id="roast-loading">analysing your fit <div class="dot-pulse"><span></span><span></span><span></span></div></div>
+      <div class="error-msg" id="roast-error"></div>
+      <div class="result-box" id="roast-results"></div>
+    </div>
+  </div>
+
+  <!-- CAPTIONS -->
+  <div class="tool" id="tool-captions">
+    <div class="card">
+      <h2>✎ caption generator</h2>
+      <div class="subtitle">describe your photo — get 5 captions with hashtags</div>
+      <textarea id="caption-input" rows="3" placeholder="e.g. mirror selfie in a thrifted blazer, moody lighting, dark academia vibes"></textarea>
+      <button class="btn" onclick="generateCaptions()">write my captions</button>
+      <div class="loading" id="caption-loading">writing your captions <div class="dot-pulse"><span></span><span></span><span></span></div></div>
+      <div class="error-msg" id="caption-error"></div>
+      <div class="result-box" id="caption-results"></div>
+    </div>
+  </div>
+
+  <footer>
+    instakit · made with ✦ · not affiliated with instagram
+  </footer>
+</div>
+
+<div class="toast" id="toast">copied!</div>
+
+<script>
+const BACKEND_URL = 'https://your-backend.onrender.com/api/grok';
+
+let roastLevel = 'medium';
+
+function switchTool(name) {
+  document.querySelectorAll('.tool').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tool-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function setRoastLevel(btn, level) {
+  roastLevel = level;
+  document.querySelectorAll('.roast-level button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('copied ✓'));
+}
+
+async function callGrok(prompt) {
+  const res = await fetch(BACKEND_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt })
+  });
+  if (!res.ok) throw new Error('api error ' + res.status);
+  const data = await res.json();
+  return data.result;
+}
+
+function showLoading(id, show) {
+  document.getElementById(id).classList.toggle('show', show);
+}
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.toggle('show', !!msg);
+}
+
+async function generateBio() {
+  const input = document.getElementById('bio-input').value.trim();
+  if (!input) return;
+  showLoading('bio-loading', true);
+  showError('bio-error', '');
+  document.getElementById('bio-results').classList.remove('show');
+  try {
+    const text = await callGrok(`You are an instagram bio writer. The user describes themselves as: "${input}". Write exactly 5 short instagram bios (max 150 chars each). Each bio should be on its own line starting with a number like "1." and ending. Use aesthetic symbols like ♡ ˚✧ ₊⊹ naturally. Make them trendy, cool, and authentic for instagram. Only output the 5 bios, nothing else.`);
+    const lines = text.split('\n').filter(l => l.trim() && /^\d\./.test(l.trim()));
+    const box = document.getElementById('bio-results');
+    box.innerHTML = lines.map(l => {
+      const clean = l.replace(/^\d\.\s*/, '').trim();
+      return `<div class="result-item" onclick="copyText(this.dataset.text)"><span>${clean}</span><span class="copy-tag">tap to copy</span></div>`.replace('result-item"', `result-item" data-text="${clean.replace(/"/g, '&quot;')}"`);
+    }).join('');
+    box.classList.add('show');
+  } catch(e) {
+    showError('bio-error', 'could not connect to backend. make sure your grok proxy is running at ' + BACKEND_URL);
+  }
+  showLoading('bio-loading', false);
+}
+
+async function generateUsernames() {
+  const input = document.getElementById('username-input').value.trim();
+  if (!input) return;
+  showLoading('username-loading', true);
+  showError('username-error', '');
+  document.getElementById('username-results').classList.remove('show');
+  try {
+    const text = await callGrok(`Generate exactly 15 creative instagram username ideas for someone whose vibe/keywords are: "${input}". Requirements: each username must be under 20 chars, lowercase, use dots or underscores only, no spaces. Make them unique, aesthetic, and memorable. Mix styles: minimalist, cute, edgy, dreamy. Output only the usernames, one per line, no numbers or explanations.`);
+    const usernames = text.split('\n').map(l => l.trim().replace(/^[@\-\*\•]\s*/, '')).filter(l => l && l.length < 25 && !l.includes(' '));
+    const box = document.getElementById('username-results');
+    box.innerHTML = usernames.slice(0,15).map(u => `
+      <div class="username-result">
+        <span>@${u}</span>
+        <div style="display:flex;gap:10px;align-items:center">
+          <a href="https://instagram.com/${u}" target="_blank">check ig ↗</a>
+          <span class="copy-tag" style="position:static;cursor:pointer" onclick="copyText('@${u}')">copy</span>
+        </div>
+      </div>
+    `).join('');
+    box.classList.add('show');
+  } catch(e) {
+    showError('username-error', 'backend not connected. deploy your grok proxy first.');
+  }
+  showLoading('username-loading', false);
+}
+
+async function findNiche() {
+  const input = document.getElementById('niche-input').value.trim();
+  if (!input) return;
+  showLoading('niche-loading', true);
+  showError('niche-error', '');
+  document.getElementById('niche-results').classList.remove('show');
+  try {
+    const text = await callGrok(`You are an instagram growth strategist. Based on this person's description: "${input}" — give them a detailed niche analysis in this exact format:
+NICHE: [one clear niche name]
+WHY IT FITS: [2-3 sentences]
+CONTENT PILLARS: [3-4 specific content ideas, comma separated]
+TARGET AUDIENCE: [who will follow them]
+POSTING STYLE: [aesthetic direction, vibe, tone]
+GROWTH TIP: [one specific actionable tip]
+Be specific, realistic, and exciting. Think like a real ig strategist.`);
+    const box = document.getElementById('niche-results');
+    const sections = text.split('\n').filter(l => l.trim());
+    box.innerHTML = sections.map(s => `<div class="result-item" style="cursor:default">${s.replace(/^([A-Z ]+:)/, '<strong style="color:var(--lilac)">$1</strong>')}</div>`).join('');
+    box.classList.add('show');
+  } catch(e) {
+    showError('niche-error', 'backend not connected.');
+  }
+  showLoading('niche-loading', false);
+}
+
+let roastMode = 'roast';
+let outfitImageBase64 = null;
+
+function setRoastMode(btn, mode) {
+  roastMode = mode;
+  document.querySelectorAll('.mode-toggle button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function handleImageUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) {
+    showError('roast-error', 'image too large — max 10mb');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    outfitImageBase64 = dataUrl.split(',')[1];
+    document.getElementById('outfit-preview').src = dataUrl;
+    document.getElementById('upload-zone').style.display = 'none';
+    document.getElementById('preview-container').style.display = 'block';
+    const btn = document.getElementById('roast-btn');
+    btn.disabled = false;
+    btn.textContent = roastMode === 'roast' ? 'roast my fit 🔥' : 'analyse my fit ✦';
+    showError('roast-error', '');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImage() {
+  outfitImageBase64 = null;
+  document.getElementById('outfit-upload').value = '';
+  document.getElementById('upload-zone').style.display = 'block';
+  document.getElementById('preview-container').style.display = 'none';
+  const btn = document.getElementById('roast-btn');
+  btn.disabled = true;
+  btn.textContent = 'upload a photo first';
+  document.getElementById('roast-results').classList.remove('show');
+  showError('roast-error', '');
+}
+
+async function roastOutfit() {
+  if (!outfitImageBase64) return;
+  showLoading('roast-loading', true);
+  showError('roast-error', '');
+  document.getElementById('roast-results').classList.remove('show');
+
+  const heatMap = {
+    medium: 'be honest and funny. point out what works, what doesn\'t, and roast the questionable choices.',
+    spicy: 'be brutal and savage about the outfit. no sugarcoating. go hard on anything cringe.',
+    nuclear: 'absolutely destroy this outfit. unhinged mode. tear it apart piece by piece with zero mercy.'
+  };
+
+  const modePrompt = roastMode === 'roast'
+    ? `You are a savage fashion critic and outfit roaster. Look at this outfit carefully. ${heatMap[roastLevel]} Then give 3 specific fix suggestions. Format exactly: ROAST: [paragraph] WHAT WORKS: [1-2 things] WHAT DOESN'T: [specific issues] FIX IT: [3 bullet points of actionable improvements]`
+    : `You are a professional fashion stylist and image consultant. Analyse this outfit in detail. Give honest, constructive, specific feedback. Format exactly: VIBE: [what aesthetic/mood the outfit gives] RATING: [X/10 with reason] WHAT'S WORKING: [specific positives] IMPROVE: [3-4 specific changes] OUTFIT IDEAS: [2 complete alternative outfit suggestions that would work better]`;
+
+  try {
+    const res = await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: modePrompt, image: outfitImageBase64 })
+    });
+    if (!res.ok) throw new Error('api error ' + res.status);
+    const data = await res.json();
+    const text = data.result;
+    const box = document.getElementById('roast-results');
+    box.innerHTML = `<div class="result-item" style="cursor:default;line-height:1.9">${text.replace(/\n/g,'<br>').replace(/\b(ROAST:|WHAT WORKS:|WHAT DOESN'T:|FIX IT:|VIBE:|RATING:|WHAT'S WORKING:|IMPROVE:|OUTFIT IDEAS:)/g, '<strong style="color:var(--pink)">$1</strong>')}</div>`;
+    box.classList.add('show');
+  } catch(e) {
+    showError('roast-error', 'backend not connected or api error. make sure your grok proxy is running.');
+  }
+  showLoading('roast-loading', false);
+}
+
+async function generateCaptions() {
+  const input = document.getElementById('caption-input').value.trim();
+  if (!input) return;
+  showLoading('caption-loading', true);
+  showError('caption-error', '');
+  document.getElementById('caption-results').classList.remove('show');
+  try {
+    const text = await callGrok(`Write exactly 5 instagram captions for this photo: "${input}". Mix styles: one short & punchy, one poetic, one with emoji energy, one with hashtags at the end, one witty/sarcastic. Each caption on its own line starting with "1." etc. Include relevant hashtags where appropriate. Make them actually good, not generic. Only output the 5 captions.`);
+    const lines = text.split('\n').filter(l => l.trim() && /^\d\./.test(l.trim()));
+    const box = document.getElementById('caption-results');
+    box.innerHTML = lines.map(l => {
+      const clean = l.replace(/^\d\.\s*/, '').trim();
+      return `<div class="result-item" data-text="${clean.replace(/"/g,'&quot;')}" onclick="copyText(this.dataset.text)"><span>${clean}</span><span class="copy-tag">tap to copy</span></div>`;
+    }).join('');
+    box.classList.add('show');
+  } catch(e) {
+    showError('caption-error', 'backend not connected.');
+  }
+  showLoading('caption-loading', false);
+}
+
+const SYMBOLS = {
+  hearts: ['♡','♥','❤','🤍','💜','❣','💗','💕','💞','💓','💘','💝','🫀','♾','❦','❧'],
+  stars: ['✦','✧','★','☆','✩','✪','✫','✬','✭','✮','⭐','🌟','💫','✨','⋆','꙳'],
+  cute: ['ꕥ','ꗃ','ꗄ','ꖘ','ꖛ','⊹','₊','˚','ʚ','ɞ','ᗢ','ꒊ','꒰','꒱','〰','◡'],
+  dark: ['𓆩','𓆪','𖤐','⛧','𝕳','☽','☾','🌑','🕷','⚰','🖤','𖦹','⋮','▲','◈','⊗'],
+  dividers: ['─','━','═','·','•','∘','°','~','〜','﹌','⌇','⌁','﹋','∞','⋯','…'],
+  nature: ['𓂃','𓃠','𓅭','𓆉','𓆏','🌿','🍃','🌸','🌺','🌻','🌙','☁','🌊','🦋','🌵','🍄']
+};
+
+function buildSymbols() {
+  Object.entries(SYMBOLS).forEach(([cat, syms]) => {
+    const grid = document.getElementById(cat);
+    if (!grid) return;
+    grid.innerHTML = syms.map(s => `<div class="sym-btn" onclick="copyText('${s}')" title="copy">${s}</div>`).join('');
+  });
+}
+
+function toFancyFont(text, fn) { return [...text].map(c => fn(c)).join(''); }
+const fonts = [
+  { name: '𝓢𝓬𝓻𝓲𝓹𝓽', fn: c => { const cp = c.codePointAt(0); if(cp>=65&&cp<=90) return String.fromCodePoint(cp-65+0x1D4D0); if(cp>=97&&cp<=122) return String.fromCodePoint(cp-97+0x1D4EA); return c; }},
+  { name: '𝔊𝔬𝔱𝔥𝔦𝔠', fn: c => { const cp = c.codePointAt(0); if(cp>=65&&cp<=90) return String.fromCodePoint(cp-65+0x1D504); if(cp>=97&&cp<=122) return String.fromCodePoint(cp-97+0x1D51E); return c; }},
+  { name: '𝕯𝖔𝖚𝖇𝖑𝖊', fn: c => { const cp = c.codePointAt(0); if(cp>=65&&cp<=90) return String.fromCodePoint(cp-65+0x1D538); if(cp>=97&&cp<=122) return String.fromCodePoint(cp-97+0x1D552); return c; }},
+  { name: '𝗕𝗼𝗹𝗱', fn: c => { const cp = c.codePointAt(0); if(cp>=65&&cp<=90) return String.fromCodePoint(cp-65+0x1D400); if(cp>=97&&cp<=122) return String.fromCodePoint(cp-97+0x1D41A); return c; }},
+  { name: 'ａｅｓｔｈｅｔｉｃ', fn: c => { const cp = c.codePointAt(0); if(cp>=65&&cp<=90) return String.fromCodePoint(cp-65+0xFF21); if(cp>=97&&cp<=122) return String.fromCodePoint(cp-97+0xFF41); if(cp===32) return '\u3000'; return c; }},
+  { name: '𝘐𝘵𝘢𝘭𝘪𝘤', fn: c => { const cp = c.codePointAt(0); if(cp>=65&&cp<=90) return String.fromCodePoint(cp-65+0x1D608); if(cp>=97&&cp<=122) return String.fromCodePoint(cp-97+0x1D622); return c; }},
+  { name: 't̶̲̲e̶̲̲x̶̲̲t̶̲̲', fn: c => c + '\u0336\u0332' },
+  { name: 'ṡ̤p̤ȧ̤c̤e̤d̤', fn: c => c + '\u0324' },
+];
+
+function generateFonts() {
+  const text = document.getElementById('font-input').value || 'your text';
+  const box = document.getElementById('font-results');
+  box.innerHTML = fonts.map(f => {
+    const result = toFancyFont(text, f.fn);
+    return `<div class="font-row" onclick="copyText('${result.replace(/'/g,"\\'")}')"><span>${result}</span><span class="copy-tag">copy</span></div>`;
+  }).join('');
+}
+
+generateFonts();
+buildSymbols();
+
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const SYMS = ['♡','✦','˚','✧','⊹','₊','ꕥ','✩','◡'];
+for(let i=0;i<60;i++) particles.push({
+  x: Math.random()*window.innerWidth,
+  y: Math.random()*window.innerHeight,
+  sym: SYMS[Math.floor(Math.random()*SYMS.length)],
+  size: 10 + Math.random()*14,
+  speedX: (Math.random()-0.5)*0.3,
+  speedY: -0.2 - Math.random()*0.4,
+  opacity: 0.05 + Math.random()*0.15,
+  color: Math.random() > 0.5 ? '#c084fc' : '#ff6eb4'
+});
+
+function animate() {
+  ctx.clearRect(0,0,W,H);
+  particles.forEach(p => {
+    ctx.font = p.size + 'px serif';
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.opacity;
+    ctx.fillText(p.sym, p.x, p.y);
+    p.x += p.speedX; p.y += p.speedY;
+    if(p.y < -20) { p.y = H + 20; p.x = Math.random()*W; }
+    if(p.x < -20) p.x = W + 20;
+    if(p.x > W + 20) p.x = -20;
+  });
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+</body>
+</html>
